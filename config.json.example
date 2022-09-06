@@ -1,0 +1,18 @@
+{
+  "port": 5243,
+  "host": "localhost",
+  "channels": [
+    {
+      "name": "test",
+      "url-code": "test",
+      "url-api": "http://localhost/api/v1/tg-service",
+      "token": "5032___112:AAH5b4biJwh1JjQJG____1J2Ork8G5exc9Q"
+    },
+    {
+      "name": "test2",
+      "url-code": "test2",
+      "url-api": "http://localhost:8022/api/v1/tg-service",
+      "token": "5032___112:AAH5b4biJwh1JjQJG____1J2Ork8G5exc9Q"
+    }
+  ]
+}
