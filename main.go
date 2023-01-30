@@ -128,19 +128,29 @@ func startListenerChannel(channel Channel) {
 			continue
 		}
 
+		var commandParams string
+
+		if update.Message.IsCommand() {
+			commandParams = strings.Replace(update.Message.Text, "/"+update.Message.Command()+" ", "", 1)
+		}
+
 		postBody, _ := json.Marshal(map[string]interface{}{
-			"command":      update.Message.Command(),
-			"chat_id":      update.Message.Chat.ID,
-			"first_name":   update.Message.Chat.FirstName,
-			"last_name":    update.Message.Chat.LastName,
-			"username":     update.Message.Chat.UserName,
-			"text_message": update.Message.Text,
+			"command":        update.Message.Command(),
+			"command_params": commandParams,
+			"chat_id":        update.Message.Chat.ID,
+			"first_name":     update.Message.Chat.FirstName,
+			"last_name":      update.Message.Chat.LastName,
+			"username":       update.Message.Chat.UserName,
+			"text_message":   update.Message.Text,
 		})
 
 		responseBody := bytes.NewBuffer(postBody)
 
 		resp, err := http.Post(channel.UrlApi, "application/json", responseBody)
 		defer resp.Body.Close()
+
+		//jsonF, _ := json.Marshal(resp)
+		//fmt.Println(string(jsonF))
 
 		if err != nil {
 			log.Error("An Error Occurred %v", err)
