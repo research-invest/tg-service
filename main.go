@@ -140,6 +140,8 @@ func startListenerChannel(channel Channel) {
 		responseBody := bytes.NewBuffer(postBody)
 
 		resp, err := http.Post(channel.UrlApi, "application/json", responseBody)
+		defer resp.Body.Close()
+
 		if err != nil {
 			log.Error("An Error Occurred %v", err)
 
@@ -156,8 +158,6 @@ func startListenerChannel(channel Channel) {
 
 			continue
 		}
-
-		defer resp.Body.Close()
 
 		d := json.NewDecoder(resp.Body)
 		sendMessage := &SendMessageChannel{}
