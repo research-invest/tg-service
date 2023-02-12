@@ -42,6 +42,11 @@ func main() {
 }
 
 func runListenChannels() {
+
+	HttpHandlerFunc("/", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		io.WriteString(w, "Hello!")
+	}))
+
 	for _, channel := range appConfig.Channels {
 		channel := channel
 
@@ -56,6 +61,8 @@ func runListenChannels() {
 		ChannelBots[channel.UrlCode] = bot
 
 		HttpHandlerFunc(ChannelUrl+channel.UrlCode, http.HandlerFunc(ChannelHandler))
+
+		fmt.Println("Channel: " + ChannelUrl + channel.UrlCode)
 
 		go func() {
 			startListenerChannel(channel)
@@ -193,7 +200,6 @@ func startListenerChannel(channel Channel) {
 }
 
 func ChannelHandler(w http.ResponseWriter, r *http.Request) {
-	code := strings.Replace(r.URL.Path, ChannelUrl, "", 1)
 	switch r.Method {
 	case "POST":
 		d := json.NewDecoder(r.Body)
@@ -205,7 +211,7 @@ func ChannelHandler(w http.ResponseWriter, r *http.Request) {
 			log.Error("ChannelHandler error Decode %v", err)
 			return
 		}
-
+		code := strings.Replace(r.URL.Path, ChannelUrl, "", 1)
 		err, _ = sendMessageInChannel(code, sendMessage)
 		if err != nil {
 			log.Error("ChannelHandler error send message %v", err)
