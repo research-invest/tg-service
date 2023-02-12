@@ -8,6 +8,8 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/sirupsen/logrus"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -23,6 +25,8 @@ type ReplyMarkup struct {
 type SendMessageChannel struct {
 	ChatId      int64       `json:"chat_id"`
 	Text        string      `json:"text"`
+	FileUrl     string      `json:"file_url"`
+	FilePath    string      `json:"file_path"`
 	ReplyMarkup ReplyMarkup `json:"replyMarkup"`
 }
 
@@ -124,7 +128,7 @@ func startListenerChannel(channel Channel) {
 	updates, _ := bot.GetUpdatesChan(u)
 
 	for update := range updates {
-		if update.Message == nil { // ignore any non-Message updates
+		if update.Message == nil {
 			continue
 		}
 
@@ -218,8 +222,76 @@ func ChannelHandler(w http.ResponseWriter, r *http.Request) {
 
 func sendMessageInChannel(code string, sendMessage *SendMessageChannel) (error, bool) {
 	bot := ChannelBots[code]
+
+	var msg tgbotapi.Chattable
+
+	if sendMessage.FilePath != "" || sendMessage.FileUrl != "" {
+		msg = sendFileMessage(sendMessage)
+		//keyboard ??
+	} else {
+		msg = sendTextMessage(sendMessage)
+	}
+
+	if _, err := bot.Send(msg); err != nil {
+		log.Error("sendMessageInChannel error send message %v", err)
+		return err, false
+	}
+
+	return nil, true
+}
+
+func sendFileMessage(sendMessage *SendMessageChannel) tgbotapi.Chattable {
+	var fileBytes []byte
+	var err error
+
+	if sendMessage.FilePath != "" {
+		fileBytes, err = ioutil.ReadFile(sendMessage.FilePath)
+		if err != nil {
+			log.Error("sendFileMessage by FilePath error %v", err)
+			return nil
+		}
+	} else {
+		response, err := http.Get(sendMessage.FileUrl)
+		if err != nil {
+			log.Error("sendFileMessage by FileUrl error %v", err)
+			return nil
+		}
+
+		defer response.Body.Close()
+
+		fileBytes, err = io.ReadAll(response.Body)
+		if err != nil {
+			log.Error("sendFileMessage by FileUrl ReadAll error %v", err)
+			return nil
+		}
+	}
+
+	mime := isImageMime(fileBytes)
+	if mime != "" {
+		return sendPhotoMessage(sendMessage, fileBytes)
+	}
+
+	return sendDocumentMessage(sendMessage, fileBytes)
+}
+
+func sendDocumentMessage(sendMessage *SendMessageChannel, fileBytes []byte) tgbotapi.DocumentConfig {
+	return tgbotapi.NewDocumentUpload(sendMessage.ChatId, tgbotapi.FileBytes{
+		Name:  sendMessage.Text,
+		Bytes: fileBytes,
+	})
+}
+
+func sendPhotoMessage(sendMessage *SendMessageChannel, fileBytes []byte) tgbotapi.PhotoConfig {
+	return tgbotapi.NewPhotoUpload(sendMessage.ChatId, tgbotapi.FileBytes{
+		Name:  sendMessage.Text,
+		Bytes: fileBytes,
+	})
+}
+
+func sendTextMessage(sendMessage *SendMessageChannel) tgbotapi.MessageConfig {
 	msg := tgbotapi.NewMessage(sendMessage.ChatId, sendMessage.Text)
 	msg.ParseMode = "MarkdownV2"
+
 	//msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 
 	if sendMessage.ReplyMarkup.KeyboardButtonRows != nil {
@@ -235,10 +307,5 @@ func sendMessageInChannel(code string, sendMessage *SendMessageChannel) (error, 
 		msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(rows...)
 	}
 
-	if _, err := bot.Send(msg); err != nil {
-		log.Error("sendMessageInChannel error send message %v", err)
-		return err, false
-	}
-
-	return nil, true
+	return msg
 }
