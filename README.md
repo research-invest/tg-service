@@ -13,6 +13,7 @@
 - Управление кнопками в ботах
 
 ##build
+
 GOOS=linux GOARCH=amd64 go build -o ./tg-service -a
 
 ##Запросы
@@ -20,6 +21,11 @@ GOOS=linux GOARCH=amd64 go build -o ./tg-service -a
 POST http://localhost:5243/channel/test_bot где test_bot это name в конфге
 
 ```
+{
+    "text":"Привет я просто скучный текст",
+    "chat_id":19223218410
+}
+
 {
     "file_url":"https://i.imgur.com/unQLJIb.jpg",
     "text":"Привет я картинка с котиком по урлу",
