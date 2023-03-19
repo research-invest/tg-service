@@ -159,8 +159,14 @@ func startListenerChannel(channel Channel) {
 
 		resp, err := http.Post(channel.UrlApi, "application/json", responseBody)
 
-		jsonF, _ := json.Marshal(resp)
-		fmt.Println(string(jsonF))
+		if resp == nil {
+			jsonF, _ := json.Marshal(responseBody)
+			fmt.Printf("Url api: %s, request body: %s\n", channel.UrlApi, string(jsonF))
+			log.Fatalf("api request error : %v", string(jsonF))
+			continue
+		}
+
+		//fmt.Println(string(jsonF))
 
 		defer resp.Body.Close()
 
