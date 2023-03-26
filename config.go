@@ -11,6 +11,7 @@ type Config struct {
 	Port     int
 	Host     string
 	Channels []Channel
+	Ssl      Ssl
 }
 
 type Channel struct {
@@ -18,6 +19,11 @@ type Channel struct {
 	UrlCode string `json:"url-code"`
 	UrlApi  string `json:"url-api"`
 	Token   string `json:"token"`
+}
+
+type Ssl struct {
+	CertificateFile    string `json:"crt-file"`
+	CertificateKeyFile string `json:"key-file"`
 }
 
 func readConfig() {

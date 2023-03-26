@@ -77,7 +77,16 @@ func startApiListenAndServe() {
 
 	fmt.Println("Start service on " + host + ":" + strconv.Itoa(port) + ".")
 
-	err := http.ListenAndServe(host+":"+strconv.Itoa(port), nil)
+	var err error
+	if appConfig.Ssl.CertificateFile != "" {
+		err = http.ListenAndServeTLS(host+":"+strconv.Itoa(port),
+			appConfig.Ssl.CertificateFile,
+			appConfig.Ssl.CertificateKeyFile,
+			nil)
+	} else {
+		err = http.ListenAndServe(host+":"+strconv.Itoa(port), nil)
+	}
+
 	if err != nil {
 		log.Fatalf("can't run service : %v", err)
 	}

@@ -1,6 +1,10 @@
 {
   "port": 5243,
   "host": "localhost",
+  "ssl": {
+    "crt-file": "",
+    "key-file": ""
+  },
   "channels": [
     {
       "name": "test",
