@@ -164,7 +164,9 @@ func startListenerChannel(channel Channel) {
 			"text_message":   update.Message.Text,
 		})
 
-		responseBody := bytes.NewBuffer(postBody)
+		jsonValue, _ := json.Marshal(postBody)
+
+		responseBody := bytes.NewBuffer(jsonValue)
 
 		resp, err := http.Post(channel.UrlApi, "application/json", responseBody)
 
