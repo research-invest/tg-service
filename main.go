@@ -203,8 +203,7 @@ func startListenerChannel(channel Channel) {
 		err = d.Decode(sendMessage)
 
 		if err != nil {
-			log.Error("An Error read from api response %v", err)
-			continue
+			log.Fatalf("An Error read from api response %v body: %v", err, resp.Body)
 		}
 
 		sendMessage.ChatId = update.Message.Chat.ID
