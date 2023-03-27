@@ -172,7 +172,8 @@ func startListenerChannel(channel Channel) {
 
 		if resp == nil {
 			fmt.Printf("Url api: %s, request body: %s\n", channel.UrlApi, string(postBody))
-			log.Fatalf("api request error : %v", string(postBody))
+			fmt.Printf("Url api: %s, request body: %s %s \n", channel.UrlApi, string(postBody), err.Error())
+			log.Fatalf("api request error : %v, err %v", string(postBody), string(err.Error()))
 			continue
 		}
 
